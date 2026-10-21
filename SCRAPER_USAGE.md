@@ -2,7 +2,9 @@
 
 ## Description
 
-`scraper_utils.py` contient des fonctions utilitaires pour scraper des tableaux HTML depuis des sites web utilisant du JavaScript dynamique.
+`scraper_utils.py` contient des fonctions utilitaires pour scraper des tableaux HTML depuis des sites web utilisant du JavaScript dynamique, et pour télécharger directement des fichiers CSV.
+
+Helium et Selenium ne sont importés qu'à l'appel de `scrape_table_from_url` et `close_browser` : `parse_html_table` et `download_csv` fonctionnent sans navigateur.
 
 ## Fonctions disponibles
 
@@ -15,11 +17,36 @@ Scrape un tableau HTML depuis une URL et le convertit en DataFrame pandas.
 - `headless` (bool, optionnel): Exécuter Chrome sans interface graphique (défaut: True)
 - `timeout_secs` (int, optionnel): Temps d'attente maximum pour le chargement du tableau (défaut: 30)
 - `chrome_options` (Options, optionnel): Options Chrome personnalisées
+- `table_index` (int, optionnel): Index du tableau à extraire si la page en contient plusieurs (défaut: 0)
 
 **Retourne:**
 - `pd.DataFrame`: Le tableau extrait sous forme de DataFrame
 
-### 2. `close_browser()`
+### 2. `parse_html_table()`
+
+Convertit un tableau d'un code HTML (par exemple une page sauvegardée) en DataFrame, sans lancer de navigateur. C'est la fonction utilisée par `scrape_table_from_url`.
+
+**Paramètres:**
+- `html` (str): Le code HTML contenant le tableau
+- `table_index` (int, optionnel): Index du tableau à extraire (défaut: 0)
+
+### 3. `download_csv()`
+
+Télécharge un fichier CSV (par exemple l'export complet d'un graphique Our World in Data) et le charge dans un DataFrame. Plus rapide et plus fiable que le scraping lorsque le site propose un téléchargement.
+
+**Paramètres:**
+- `url` (str): L'URL du fichier CSV
+- `out_file` (str, optionnel): Chemin où enregistrer aussi le fichier brut
+- `timeout_secs` (int, optionnel): Temps d'attente maximum de la réponse du serveur (défaut: 60)
+
+```python
+from scraper_utils import download_csv
+
+df = download_csv('https://ourworldindata.org/grapher/electricity-generation.csv',
+                  out_file='electricity_generation.csv')
+```
+
+### 4. `close_browser()`
 
 Ferme toutes les instances de navigateur ouvertes pour libérer les ressources.
 
@@ -127,18 +154,19 @@ close_browser()
 Assurez-vous d'avoir installé les packages suivants:
 
 ```bash
-pip install helium selenium beautifulsoup4 pandas
+pip install -r requirements.txt
 ```
 
 ## Structure du projet
 
 ```
 Dataviz_Africitizen_project/
-├── scraper_utils.py          # Module avec les fonctions
-├── energy.ipynb               # Notebook principal (utilise scraper_utils)
-|
-├── Exploratory_analysis.ipynb # Autre notebook (scraper_utils specialement destiné à nettoyer les données scrapées du notebook  principal et faire de l'analyse  )
-└── SCRAPER_USAGE.md          # Ce fichier
+├── scraper_utils.py           # Fonctions de scraping et de téléchargement
+├── data_cleaning.py           # Fonctions de nettoyage (filtrage des pays, classes de production)
+├── energy_scraping.ipynb      # Collecte des données (utilise scraper_utils)
+├── Exploratory_analysis.ipynb # Nettoyage et analyse des données collectées
+├── tests/                     # Tests unitaires (pytest)
+└── SCRAPER_USAGE.md           # Ce fichier
 ```
 
 ## Conseils et bonnes pratiques
@@ -152,6 +180,8 @@ Dataviz_Africitizen_project/
 4. **Mode headless**: Utilisez `headless=False` pour déboguer visuellement le scraping
 
 5. **Réutilisation**: Vous pouvez appeler la fonction plusieurs fois pour différentes URLs
+
+6. **Préférer le téléchargement**: Si le site propose un export CSV (comme Our World in Data), `download_csv` est plus simple et plus fiable que le scraping
 
 ## Dépannage
 

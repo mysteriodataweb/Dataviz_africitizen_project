@@ -1,0 +1,16 @@
+# Analyse des données
+pandas>=2.0
+numpy
+matplotlib
+seaborn
+openpyxl
+
+# Scraping / téléchargement
+requests
+beautifulsoup4
+helium
+selenium
+
+# Notebooks et tests
+jupyter
+pytest
